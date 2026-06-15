@@ -275,11 +275,19 @@ body::after {
 }
 
 .branding-author {
+  display: block;
   font-size: 10px;
   font-weight: 400;
   color: #888;
   margin-top: 8px;
   text-transform: uppercase;
+  text-decoration: none;
+  pointer-events: auto;
+  transition: color 0.2s;
+}
+
+.branding-author:hover {
+  color: #aaa;
 }
 
 /* Controls */
@@ -312,13 +320,7 @@ body::after {
 }
 
 .control-btn svg {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   stroke-width: 1.5;
-}
-
-.btn-label {
-  font-size: 10px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }

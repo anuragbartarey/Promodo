@@ -219,16 +219,12 @@ function togglePause() {
     updateGlowColor(HIGHLIGHT_COLOR_PAUSED);
     pauseBtn.querySelector(".icon-pause").style.display = "none";
     pauseBtn.querySelector(".icon-play").style.display = "inline";
-    pauseBtn.querySelector(".pause-label").style.display = "none";
-    pauseBtn.querySelector(".play-label").style.display = "inline";
   } else {
     startTimer();
     document.body.classList.remove("paused");
     updateGlowColor(HIGHLIGHT_COLOR_ACTIVE);
     pauseBtn.querySelector(".icon-pause").style.display = "inline";
     pauseBtn.querySelector(".icon-play").style.display = "none";
-    pauseBtn.querySelector(".pause-label").style.display = "inline";
-    pauseBtn.querySelector(".play-label").style.display = "none";
   }
 }
 
@@ -238,13 +234,9 @@ function toggleMute() {
   if (isMuted) {
     muteBtn.querySelector(".icon-sound").style.display = "none";
     muteBtn.querySelector(".icon-muted").style.display = "inline";
-    muteBtn.querySelector(".mute-label").style.display = "none";
-    muteBtn.querySelector(".unmute-label").style.display = "inline";
   } else {
     muteBtn.querySelector(".icon-sound").style.display = "inline";
     muteBtn.querySelector(".icon-muted").style.display = "none";
-    muteBtn.querySelector(".mute-label").style.display = "inline";
-    muteBtn.querySelector(".unmute-label").style.display = "none";
   }
 }
 
@@ -271,9 +263,6 @@ function init() {
   // Set up control buttons
   pauseBtn.addEventListener("click", togglePause);
   muteBtn.addEventListener("click", toggleMute);
-
-  // Initialize Feather Icons
-  feather.replace({ width: 14, height: 14, "stroke-width": 1.5 });
 
   // Start the timer automatically
   startTimer();
