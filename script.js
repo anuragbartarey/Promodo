@@ -312,7 +312,18 @@ function calculateDimensions() {
   const rect = sliderSvg.getBoundingClientRect();
   sliderHeight = rect.height;
   sliderTop = 10; // padding
-  CONFIG.lineX = rect.width / 2 + 40; // Position line right of center
+
+  // Adjust line position based on screen width to prevent overflow
+  const isMobile = rect.width < 480;
+  const isTablet = rect.width < 768;
+
+  if (isMobile) {
+    CONFIG.lineX = rect.width / 2 + 10; // Less offset on mobile
+  } else if (isTablet) {
+    CONFIG.lineX = rect.width / 2 + 25; // Medium offset on tablet
+  } else {
+    CONFIG.lineX = rect.width / 2 + 40; // Full offset on desktop
+  }
 }
 
 function valueToY(value) {
