@@ -12,6 +12,27 @@ body {
   user-select: none;
 }
 
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  left: 0;
+  right: 0;
+  height: 80px;
+  pointer-events: none;
+  z-index: 100;
+}
+
+body::before {
+  top: 0;
+  background: linear-gradient(to bottom, #151616 0%, transparent 100%);
+}
+
+body::after {
+  bottom: 0;
+  background: linear-gradient(to top, #151616 0%, transparent 100%);
+}
+
 .slider-container {
   position: relative;
   width: 100%;
@@ -244,7 +265,7 @@ body {
 .branding-author {
   font-size: 10px;
   font-weight: 400;
-  color: #888;
+  color: #494b4c;
   margin-top: 8px;
   text-transform: uppercase;
 }
