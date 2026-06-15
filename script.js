@@ -1,12 +1,14 @@
 // Glow Slider - Configuration
 const CONFIG = {
-  minValue: 20,
-  maxValue: 100,
-  initialValue: 50,
+  minValue: 0, // Minimum draggable value
+  maxValue: 60, // Maximum draggable value
+  visualMinValue: -10, // Visual range extends below for padding
+  visualMaxValue: 70, // Visual range extends above for padding
+  initialValue: 25,
   lineX: null, // Will be calculated based on viewport
   bulgeAmount: 40, // How far the line bends outward (to the left)
   bendRadius: 80, // Vertical distance of the bend zone
-  majorTickInterval: 5, // Major ticks every 10 units
+  majorTickInterval: 10, // Major ticks every 5 units
 };
 
 // State
@@ -31,6 +33,7 @@ const minDisplacement = 0.5; // Stop when displacement from bounds is minimal
 
 // Audio
 let audioCtx = null;
+let isMuted = false;
 
 function initAudio() {
   if (!audioCtx) {
@@ -39,7 +42,7 @@ function initAudio() {
 }
 
 function playTick() {
-  if (!audioCtx) return;
+  if (!audioCtx || isMuted) return;
 
   // Resume audio context if suspended (browser autoplay policy)
   if (audioCtx.state === "suspended") {
@@ -65,19 +68,177 @@ function playTick() {
   oscillator.stop(audioCtx.currentTime + 0.04);
 }
 
+// Soft heartbeat/clock tick for seconds
+function playHeartbeat() {
+  if (!audioCtx || isMuted) return;
+
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+
+  // Create a soft, low thump like a heartbeat or clock tick
+  const oscillator = audioCtx.createOscillator();
+  const gainNode = audioCtx.createGain();
+
+  oscillator.connect(gainNode);
+  gainNode.connect(audioCtx.destination);
+
+  // Low frequency for a soft thump
+  oscillator.frequency.value = 120;
+  oscillator.type = "sine";
+
+  // Soft but audible
+  const now = audioCtx.currentTime;
+  gainNode.gain.setValueAtTime(0.1, now);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+  oscillator.start(now);
+  oscillator.stop(now + 0.08);
+}
+
+// Timer functions
+function updateProgressRing() {
+  const progress = timerSeconds / SECONDS_PER_MINUTE;
+  const offset = PROGRESS_CIRCUMFERENCE * (1 - progress);
+  progressRing.style.strokeDashoffset = offset;
+}
+
+function updateSecondsDisplay() {
+  // Update seconds display (counting down from 59 to 0)
+  const displaySeconds = 59 - timerSeconds;
+  secondsDisplay.textContent = String(displaySeconds).padStart(2, "0");
+}
+
+function startTimer() {
+  if (isTimerRunning || currentValue <= CONFIG.minValue) return;
+
+  isTimerRunning = true;
+  initAudio();
+
+  timerInterval = setInterval(() => {
+    timerSeconds++;
+    updateProgressRing();
+    updateSecondsDisplay();
+
+    // Play soft heartbeat tick every second
+    playHeartbeat();
+
+    if (timerSeconds >= SECONDS_PER_MINUTE) {
+      // One minute completed
+      timerSeconds = 0;
+      updateProgressRing();
+      updateSecondsDisplay();
+
+      // Decrement the value
+      if (currentValue > CONFIG.minValue) {
+        currentValue--;
+        playTick();
+        previousValue = currentValue;
+        updateSlider();
+
+        // Stop timer if we've reached 0
+        if (currentValue <= CONFIG.minValue) {
+          stopTimer();
+        }
+      }
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  isTimerRunning = false;
+  if (timerInterval) {
+    clearInterval(timerInterval);
+    timerInterval = null;
+  }
+}
+
+function resetTimer() {
+  stopTimer();
+  timerSeconds = 0;
+  updateProgressRing();
+  updateSecondsDisplay();
+}
+
+// Timer state
+let timerSeconds = 0;
+let timerInterval = null;
+let isTimerRunning = false;
+const SECONDS_PER_MINUTE = 60;
+const PROGRESS_CIRCUMFERENCE = 2 * Math.PI * 36; // 226.195
+
 // DOM Elements
 const sliderSvg = document.getElementById("sliderSvg");
 const sliderLine = document.getElementById("sliderLine");
 const sliderButton = document.getElementById("sliderButton");
+const sliderButtonWrapper = document.getElementById("sliderButtonWrapper");
+const progressRing = document.getElementById("progressRing");
 const valueDisplay = document.getElementById("valueDisplay");
+const valueContainer = document.getElementById("valueContainer");
+const secondsDisplay = document.getElementById("secondsDisplay");
 const glowCircle = document.getElementById("glowCircle");
 const glowMaskCircle = document.getElementById("glowMaskCircle");
 const tickMarksGroup = document.getElementById("tickMarks");
 const labelsContainer = document.getElementById("labels");
+const pauseBtn = document.getElementById("pauseBtn");
+const muteBtn = document.getElementById("muteBtn");
 
 // Cached elements for smooth transitions
 let tickElements = [];
 let labelElements = [];
+
+// Enable audio on first user interaction (browser requirement)
+function enableAudioOnInteraction() {
+  initAudio();
+  if (audioCtx && audioCtx.state === "suspended") {
+    audioCtx.resume();
+  }
+  // Remove listeners after first interaction
+  document.removeEventListener("click", enableAudioOnInteraction);
+  document.removeEventListener("touchstart", enableAudioOnInteraction);
+  document.removeEventListener("keydown", enableAudioOnInteraction);
+}
+
+// Color constants
+const HIGHLIGHT_COLOR_ACTIVE = "#FF8000";
+const HIGHLIGHT_COLOR_PAUSED = "#888";
+
+// Update SVG gradient colors
+function updateGlowColor(color) {
+  const glowStops = document.querySelectorAll(".glow-stop");
+  glowStops.forEach(stop => {
+    stop.setAttribute("stop-color", color);
+  });
+}
+
+// Toggle pause/resume
+function togglePause() {
+  if (isTimerRunning) {
+    stopTimer();
+    document.body.classList.add("paused");
+    updateGlowColor(HIGHLIGHT_COLOR_PAUSED);
+    pauseBtn.querySelector(".icon-pause").style.display = "none";
+    pauseBtn.querySelector(".icon-play").style.display = "inline";
+  } else {
+    startTimer();
+    document.body.classList.remove("paused");
+    updateGlowColor(HIGHLIGHT_COLOR_ACTIVE);
+    pauseBtn.querySelector(".icon-pause").style.display = "inline";
+    pauseBtn.querySelector(".icon-play").style.display = "none";
+  }
+}
+
+// Toggle mute/unmute
+function toggleMute() {
+  isMuted = !isMuted;
+  if (isMuted) {
+    muteBtn.querySelector(".icon-sound").style.display = "none";
+    muteBtn.querySelector(".icon-muted").style.display = "inline";
+  } else {
+    muteBtn.querySelector(".icon-sound").style.display = "inline";
+    muteBtn.querySelector(".icon-muted").style.display = "none";
+  }
+}
 
 // Initialize
 function init() {
@@ -87,6 +248,24 @@ function init() {
   updateSlider();
   setupEventListeners();
   window.addEventListener("resize", onResize);
+
+  // Set up audio enable on first interaction
+  document.addEventListener("click", enableAudioOnInteraction);
+  document.addEventListener("touchstart", enableAudioOnInteraction);
+  document.addEventListener("keydown", enableAudioOnInteraction);
+
+  // Initialize audio context (will be suspended until interaction)
+  initAudio();
+
+  // Initialize seconds display
+  updateSecondsDisplay();
+
+  // Set up control buttons
+  pauseBtn.addEventListener("click", togglePause);
+  muteBtn.addEventListener("click", toggleMute);
+
+  // Start the timer automatically
+  startTimer();
 }
 
 // Create tick mark elements once
@@ -94,7 +273,12 @@ function createTickMarks() {
   tickMarksGroup.innerHTML = "";
   tickElements = [];
 
-  for (let value = CONFIG.minValue; value <= CONFIG.maxValue; value += 2) {
+  // Use visual range for tick marks
+  for (
+    let value = CONFIG.visualMinValue;
+    value <= CONFIG.visualMaxValue;
+    value += 2
+  ) {
     const isMajor = value % CONFIG.majorTickInterval === 0;
     const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
     tick.setAttribute("class", `tick-mark ${isMajor ? "major" : ""}`);
@@ -109,9 +293,10 @@ function createLabels() {
   labelsContainer.innerHTML = "";
   labelElements = [];
 
+  // Use visual range for labels
   for (
-    let value = CONFIG.minValue;
-    value <= CONFIG.maxValue;
+    let value = CONFIG.visualMinValue;
+    value <= CONFIG.visualMaxValue;
     value += CONFIG.majorTickInterval
   ) {
     const label = document.createElement("div");
@@ -127,19 +312,25 @@ function calculateDimensions() {
   const rect = sliderSvg.getBoundingClientRect();
   sliderHeight = rect.height;
   sliderTop = 10; // padding
-  CONFIG.lineX = rect.width / 2 + 60; // Position line right of center
+  CONFIG.lineX = rect.width / 2 + 40; // Position line right of center
 }
 
 function valueToY(value) {
   const usableHeight = sliderHeight - 20;
-  const ratio = (value - CONFIG.minValue) / (CONFIG.maxValue - CONFIG.minValue);
+  // Use visual range for positioning
+  const ratio =
+    (value - CONFIG.visualMinValue) /
+    (CONFIG.visualMaxValue - CONFIG.visualMinValue);
   return sliderTop + usableHeight * (1 - ratio);
 }
 
 function yToValue(y) {
   const usableHeight = sliderHeight - 20;
   const ratio = 1 - (y - sliderTop) / usableHeight;
-  const value = CONFIG.minValue + ratio * (CONFIG.maxValue - CONFIG.minValue);
+  // Calculate value using visual range, but clamp to actual min/max
+  const value =
+    CONFIG.visualMinValue +
+    ratio * (CONFIG.visualMaxValue - CONFIG.visualMinValue);
   return Math.round(
     Math.max(CONFIG.minValue, Math.min(CONFIG.maxValue, value)),
   );
@@ -262,10 +453,10 @@ function updateSlider() {
   updateTickMarks(buttonY);
   updateLabels(buttonY);
 
-  // Position the button on the RIGHT side (fixed X, the line bends away from it)
+  // Position the button wrapper on the RIGHT side (fixed X, the line bends away from it)
   const buttonX = CONFIG.lineX + 10;
-  sliderButton.style.left = `${buttonX - 32}px`;
-  sliderButton.style.top = `${buttonY - 32}px`;
+  sliderButtonWrapper.style.left = `${buttonX - 40}px`;
+  sliderButtonWrapper.style.top = `${buttonY - 40}px`;
 
   // Position the glow circle at the curve peak
   const glowX = CONFIG.lineX - CONFIG.bulgeAmount;
@@ -277,17 +468,19 @@ function updateSlider() {
   glowMaskCircle.setAttribute("cy", buttonY);
 
   // Position and update value display (right of button)
-  valueDisplay.style.left = `${buttonX + 50}px`;
-  valueDisplay.style.top = `${buttonY - 60}px`;
+  valueContainer.style.left = `${buttonX + 50}px`;
+  valueContainer.style.top = `${buttonY - 60}px`;
   valueDisplay.textContent = currentValue;
 }
 
 function setupEventListeners() {
-  sliderButton.addEventListener("mousedown", startDrag);
+  sliderButtonWrapper.addEventListener("mousedown", startDrag);
   document.addEventListener("mousemove", onDrag);
   document.addEventListener("mouseup", endDrag);
 
-  sliderButton.addEventListener("touchstart", startDrag, { passive: false });
+  sliderButtonWrapper.addEventListener("touchstart", startDrag, {
+    passive: false,
+  });
   document.addEventListener("touchmove", onDrag, { passive: false });
   document.addEventListener("touchend", endDrag);
 
@@ -299,11 +492,15 @@ function startDrag(e) {
   e.preventDefault();
   isDragging = true;
   sliderButton.classList.add("dragging");
-  valueDisplay.classList.add("dragging");
+  sliderButtonWrapper.classList.add("dragging");
+  valueContainer.classList.add("dragging");
   sliderLine.classList.add("dragging");
   glowCircle.classList.add("dragging");
   glowMaskCircle.classList.add("dragging");
   initAudio();
+
+  // Pause timer while dragging
+  stopTimer();
 
   // Cancel any ongoing momentum animation
   if (animationId) {
@@ -342,6 +539,9 @@ function onDrag(e) {
   if (currentValue !== previousValue) {
     playTick();
     previousValue = currentValue;
+    // Reset timer seconds when value changes during drag
+    timerSeconds = 0;
+    updateProgressRing();
   }
 
   updateSlider();
@@ -351,7 +551,8 @@ function endDrag() {
   if (!isDragging) return;
   isDragging = false;
   sliderButton.classList.remove("dragging");
-  valueDisplay.classList.remove("dragging");
+  sliderButtonWrapper.classList.remove("dragging");
+  valueContainer.classList.remove("dragging");
   sliderLine.classList.remove("dragging");
   glowCircle.classList.remove("dragging");
   glowMaskCircle.classList.remove("dragging");
@@ -362,6 +563,13 @@ function endDrag() {
   // Start momentum animation if there's velocity
   if (Math.abs(velocity) > minVelocity) {
     animateMomentum();
+  }
+
+  // Restart timer if value > 0
+  if (currentValue > CONFIG.minValue) {
+    startTimer();
+  } else {
+    stopTimer();
   }
 }
 
@@ -429,10 +637,10 @@ function updateSliderWithY(buttonY) {
   updateTickMarks(buttonY);
   updateLabels(buttonY);
 
-  // Position the button
+  // Position the button wrapper
   const buttonX = CONFIG.lineX + 10;
-  sliderButton.style.left = `${buttonX - 32}px`;
-  sliderButton.style.top = `${buttonY - 32}px`;
+  sliderButtonWrapper.style.left = `${buttonX - 40}px`;
+  sliderButtonWrapper.style.top = `${buttonY - 40}px`;
 
   // Position the glow circle at the curve peak
   const glowX = CONFIG.lineX - CONFIG.bulgeAmount;
@@ -444,8 +652,8 @@ function updateSliderWithY(buttonY) {
   glowMaskCircle.setAttribute("cy", buttonY);
 
   // Position and update value display
-  valueDisplay.style.left = `${buttonX + 50}px`;
-  valueDisplay.style.top = `${buttonY - 60}px`;
+  valueContainer.style.left = `${buttonX + 50}px`;
+  valueContainer.style.top = `${buttonY - 60}px`;
   valueDisplay.textContent = currentValue;
 }
 
@@ -483,7 +691,17 @@ function onKeyDown(e) {
     currentValue = newValue;
     playTick();
     previousValue = currentValue;
+    // Reset timer seconds when value changes via keyboard
+    timerSeconds = 0;
+    updateProgressRing();
     updateSlider();
+
+    // Handle timer state
+    if (currentValue > CONFIG.minValue && !isTimerRunning) {
+      startTimer();
+    } else if (currentValue <= CONFIG.minValue) {
+      stopTimer();
+    }
   }
 }
 
