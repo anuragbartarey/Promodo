@@ -1,0 +1,165 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  height: 100vh;
+  overflow: hidden;
+  background: #2d2d2d;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  user-select: none;
+}
+
+.slider-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 20px);
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slider-svg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.slider-line {
+  fill: none;
+  stroke: #d4a574;
+  stroke-width: 3;
+  stroke-linecap: round;
+  transition: d 0.08s ease-out;
+}
+
+.slider-line.dragging {
+  transition: none;
+}
+
+.tick-mark {
+  stroke: #666;
+  stroke-width: 1;
+  transition: x1 0.15s ease-out, x2 0.15s ease-out;
+}
+
+.tick-mark.major {
+  stroke: #888;
+  stroke-width: 1.5;
+}
+
+.labels {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.label {
+  position: absolute;
+  color: #888;
+  font-size: 24px;
+  font-weight: 300;
+  transform: translateY(-50%);
+  text-align: right;
+  width: 40px;
+  transition: left 0.15s ease-out, font-size 0.15s ease-out, color 0.15s ease-out, text-shadow 0.15s ease-out;
+}
+
+.slider-button {
+  position: absolute;
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(145deg, #424242, #353535);
+  border-radius: 50%;
+  cursor: grab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow:
+    0 4px 12px rgba(0, 0, 0, 0.4),
+    inset 0 0 0 4px #4a4a4a,
+    inset 0 2px 4px rgba(255, 255, 255, 0.1),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  transition: transform 0.1s ease, box-shadow 0.1s ease, top 0.08s ease-out, left 0.08s ease-out;
+}
+
+.slider-button:hover {
+  transform: scale(1.05);
+}
+
+.slider-button:active {
+  cursor: grabbing;
+  transform: scale(1.08);
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 4px #4a4a4a,
+    inset 0 2px 4px rgba(255, 255, 255, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.slider-button.dragging {
+  cursor: grabbing;
+  transform: scale(1.08);
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  box-shadow:
+    0 6px 20px rgba(0, 0, 0, 0.5),
+    inset 0 0 0 4px #4a4a4a,
+    inset 0 2px 4px rgba(255, 255, 255, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.button-arrows {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  color: #666;
+  font-size: 10px;
+}
+
+.arrow {
+  opacity: 0.6;
+}
+
+.value-display {
+  position: absolute;
+  color: #d4a574;
+  font-size: 120px;
+  font-weight: 300;
+  letter-spacing: -4px;
+  pointer-events: none;
+  z-index: 5;
+  text-shadow: 0 0 40px rgba(212, 165, 116, 0.3);
+  transition: top 0.08s ease-out, left 0.08s ease-out;
+}
+
+.value-display.dragging {
+  transition: none;
+}
+
+/* Glow effect on the circle */
+#glowCircle {
+  opacity: 0.6;
+  mix-blend-mode: screen;
+  transition: cx 0.08s ease-out, cy 0.08s ease-out;
+}
+
+#glowCircle.dragging {
+  transition: none;
+}
+
+#glowMaskCircle {
+  transition: cx 0.08s ease-out, cy 0.08s ease-out;
+}
+
+#glowMaskCircle.dragging {
+  transition: none;
+}

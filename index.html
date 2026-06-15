@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Glow Slider</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="slider-container">
+    <!-- SVG for the bending line and tick marks -->
+    <svg class="slider-svg" id="sliderSvg">
+      <defs>
+        <!-- Glow filter -->
+        <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+          <feGaussianBlur stdDeviation="8" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+        <!-- Softer glow gradient -->
+        <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#d4a574" stop-opacity="0.5"/>
+          <stop offset="60%" stop-color="#d4a574" stop-opacity="0.2"/>
+          <stop offset="100%" stop-color="#d4a574" stop-opacity="0"/>
+        </radialGradient>
+        <!-- Soft circular mask for glow -->
+        <mask id="glowMask">
+          <radialGradient id="maskGradient" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="white" stop-opacity="1"/>
+            <stop offset="70%" stop-color="white" stop-opacity="0.6"/>
+            <stop offset="100%" stop-color="white" stop-opacity="0"/>
+          </radialGradient>
+          <circle id="glowMaskCircle" r="100" fill="url(#maskGradient)"/>
+        </mask>
+      </defs>
+
+      <!-- Glow circle that follows the button (soft circular mask) -->
+      <circle id="glowCircle" r="100" fill="url(#glowGradient)" mask="url(#glowMask)"/>
+
+      <!-- The bending line -->
+      <path id="sliderLine" class="slider-line"/>
+
+      <!-- Tick marks group -->
+      <g id="tickMarks"></g>
+    </svg>
+
+    <!-- Number labels -->
+    <div class="labels" id="labels"></div>
+
+    <!-- Draggable button -->
+    <div class="slider-button" id="sliderButton">
+      <div class="button-arrows">
+        <span class="arrow up">▲</span>
+        <span class="arrow down">▼</span>
+      </div>
+    </div>
+
+    <!-- Large value display -->
+    <div class="value-display" id="valueDisplay">50</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
