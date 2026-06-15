@@ -1,12 +1,14 @@
 // Glow Slider - Configuration
 const CONFIG = {
-  minValue: 0,
-  maxValue: 60,
+  minValue: 0, // Minimum draggable value
+  maxValue: 60, // Maximum draggable value
+  visualMinValue: -10, // Visual range extends below for padding
+  visualMaxValue: 70, // Visual range extends above for padding
   initialValue: 25,
   lineX: null, // Will be calculated based on viewport
   bulgeAmount: 40, // How far the line bends outward (to the left)
   bendRadius: 80, // Vertical distance of the bend zone
-  majorTickInterval: 5, // Major ticks every 5 units (0, 5, 10, 15...60)
+  majorTickInterval: 10, // Major ticks every 5 units
 };
 
 // State
@@ -31,6 +33,7 @@ const minDisplacement = 0.5; // Stop when displacement from bounds is minimal
 
 // Audio
 let audioCtx = null;
+let isMuted = false;
 
 function initAudio() {
   if (!audioCtx) {
@@ -39,7 +42,7 @@ function initAudio() {
 }
 
 function playTick() {
-  if (!audioCtx) return;
+  if (!audioCtx || isMuted) return;
 
   // Resume audio context if suspended (browser autoplay policy)
   if (audioCtx.state === "suspended") {
@@ -67,7 +70,7 @@ function playTick() {
 
 // Soft heartbeat/clock tick for seconds
 function playHeartbeat() {
-  if (!audioCtx) return;
+  if (!audioCtx || isMuted) return;
 
   if (audioCtx.state === "suspended") {
     audioCtx.resume();
@@ -177,6 +180,8 @@ const glowCircle = document.getElementById("glowCircle");
 const glowMaskCircle = document.getElementById("glowMaskCircle");
 const tickMarksGroup = document.getElementById("tickMarks");
 const labelsContainer = document.getElementById("labels");
+const pauseBtn = document.getElementById("pauseBtn");
+const muteBtn = document.getElementById("muteBtn");
 
 // Cached elements for smooth transitions
 let tickElements = [];
@@ -192,6 +197,55 @@ function enableAudioOnInteraction() {
   document.removeEventListener("click", enableAudioOnInteraction);
   document.removeEventListener("touchstart", enableAudioOnInteraction);
   document.removeEventListener("keydown", enableAudioOnInteraction);
+}
+
+// Color constants
+const HIGHLIGHT_COLOR_ACTIVE = "#FF8000";
+const HIGHLIGHT_COLOR_PAUSED = "#888";
+
+// Update SVG gradient colors
+function updateGlowColor(color) {
+  const glowStops = document.querySelectorAll(".glow-stop");
+  glowStops.forEach(stop => {
+    stop.setAttribute("stop-color", color);
+  });
+}
+
+// Toggle pause/resume
+function togglePause() {
+  if (isTimerRunning) {
+    stopTimer();
+    document.body.classList.add("paused");
+    updateGlowColor(HIGHLIGHT_COLOR_PAUSED);
+    pauseBtn.querySelector(".icon-pause").style.display = "none";
+    pauseBtn.querySelector(".icon-play").style.display = "inline";
+    pauseBtn.querySelector(".pause-label").style.display = "none";
+    pauseBtn.querySelector(".play-label").style.display = "inline";
+  } else {
+    startTimer();
+    document.body.classList.remove("paused");
+    updateGlowColor(HIGHLIGHT_COLOR_ACTIVE);
+    pauseBtn.querySelector(".icon-pause").style.display = "inline";
+    pauseBtn.querySelector(".icon-play").style.display = "none";
+    pauseBtn.querySelector(".pause-label").style.display = "inline";
+    pauseBtn.querySelector(".play-label").style.display = "none";
+  }
+}
+
+// Toggle mute/unmute
+function toggleMute() {
+  isMuted = !isMuted;
+  if (isMuted) {
+    muteBtn.querySelector(".icon-sound").style.display = "none";
+    muteBtn.querySelector(".icon-muted").style.display = "inline";
+    muteBtn.querySelector(".mute-label").style.display = "none";
+    muteBtn.querySelector(".unmute-label").style.display = "inline";
+  } else {
+    muteBtn.querySelector(".icon-sound").style.display = "inline";
+    muteBtn.querySelector(".icon-muted").style.display = "none";
+    muteBtn.querySelector(".mute-label").style.display = "inline";
+    muteBtn.querySelector(".unmute-label").style.display = "none";
+  }
 }
 
 // Initialize
@@ -214,6 +268,13 @@ function init() {
   // Initialize seconds display
   updateSecondsDisplay();
 
+  // Set up control buttons
+  pauseBtn.addEventListener("click", togglePause);
+  muteBtn.addEventListener("click", toggleMute);
+
+  // Initialize Feather Icons
+  feather.replace({ width: 14, height: 14, "stroke-width": 1.5 });
+
   // Start the timer automatically
   startTimer();
 }
@@ -223,7 +284,12 @@ function createTickMarks() {
   tickMarksGroup.innerHTML = "";
   tickElements = [];
 
-  for (let value = CONFIG.minValue; value <= CONFIG.maxValue; value += 2) {
+  // Use visual range for tick marks
+  for (
+    let value = CONFIG.visualMinValue;
+    value <= CONFIG.visualMaxValue;
+    value += 2
+  ) {
     const isMajor = value % CONFIG.majorTickInterval === 0;
     const tick = document.createElementNS("http://www.w3.org/2000/svg", "line");
     tick.setAttribute("class", `tick-mark ${isMajor ? "major" : ""}`);
@@ -238,9 +304,10 @@ function createLabels() {
   labelsContainer.innerHTML = "";
   labelElements = [];
 
+  // Use visual range for labels
   for (
-    let value = CONFIG.minValue;
-    value <= CONFIG.maxValue;
+    let value = CONFIG.visualMinValue;
+    value <= CONFIG.visualMaxValue;
     value += CONFIG.majorTickInterval
   ) {
     const label = document.createElement("div");
@@ -256,19 +323,25 @@ function calculateDimensions() {
   const rect = sliderSvg.getBoundingClientRect();
   sliderHeight = rect.height;
   sliderTop = 10; // padding
-  CONFIG.lineX = rect.width / 2 + 60; // Position line right of center
+  CONFIG.lineX = rect.width / 2 + 40; // Position line right of center
 }
 
 function valueToY(value) {
   const usableHeight = sliderHeight - 20;
-  const ratio = (value - CONFIG.minValue) / (CONFIG.maxValue - CONFIG.minValue);
+  // Use visual range for positioning
+  const ratio =
+    (value - CONFIG.visualMinValue) /
+    (CONFIG.visualMaxValue - CONFIG.visualMinValue);
   return sliderTop + usableHeight * (1 - ratio);
 }
 
 function yToValue(y) {
   const usableHeight = sliderHeight - 20;
   const ratio = 1 - (y - sliderTop) / usableHeight;
-  const value = CONFIG.minValue + ratio * (CONFIG.maxValue - CONFIG.minValue);
+  // Calculate value using visual range, but clamp to actual min/max
+  const value =
+    CONFIG.visualMinValue +
+    ratio * (CONFIG.visualMaxValue - CONFIG.visualMinValue);
   return Math.round(
     Math.max(CONFIG.minValue, Math.min(CONFIG.maxValue, value)),
   );

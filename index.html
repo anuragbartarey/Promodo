@@ -7,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:ital,wght,CRSV,ELSH,ELXP@0,100..700,0..1,0..1,0..1;1,100..700,0..1,0..1,0..1&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/feather-icons"></script>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -24,9 +25,9 @@
         </filter>
         <!-- Softer glow gradient -->
         <radialGradient id="glowGradient" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#FF8000" stop-opacity="0.5"/>
-          <stop offset="60%" stop-color="#FF8000" stop-opacity="0.2"/>
-          <stop offset="100%" stop-color="#FF8000" stop-opacity="0"/>
+          <stop class="glow-stop" offset="0%" stop-color="#FF8000" stop-opacity="0.5"/>
+          <stop class="glow-stop" offset="60%" stop-color="#FF8000" stop-opacity="0.2"/>
+          <stop class="glow-stop" offset="100%" stop-color="#FF8000" stop-opacity="0"/>
         </radialGradient>
         <!-- Soft circular mask for glow -->
         <mask id="glowMask">
@@ -80,6 +81,22 @@
         <div>ORO</div>
       </div>
       <div class="branding-author">By Anurag Bartarey</div>
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <button class="control-btn" id="pauseBtn" title="Pause/Resume">
+        <i class="icon-pause" data-feather="pause"></i>
+        <i class="icon-play" data-feather="play" style="display: none;"></i>
+        <span class="btn-label pause-label">Pause</span>
+        <span class="btn-label play-label" style="display: none;">Play</span>
+      </button>
+      <button class="control-btn" id="muteBtn" title="Mute/Unmute">
+        <i class="icon-sound" data-feather="volume-2"></i>
+        <i class="icon-muted" data-feather="volume-x" style="display: none;"></i>
+        <span class="btn-label mute-label">Mute</span>
+        <span class="btn-label unmute-label" style="display: none;">Unmute</span>
+      </button>
     </div>
   </div>
 
