@@ -10,6 +10,12 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+  <!-- Splash overlay -->
+  <div class="splash-overlay" id="splashOverlay"></div>
+
+  <!-- Pause overlay -->
+  <div class="pause-overlay" id="pauseOverlay"></div>
+
   <div class="slider-container">
     <!-- SVG for the bending line and tick marks -->
     <svg class="slider-svg" id="sliderSvg">
@@ -64,6 +70,10 @@
           <span class="arrow down">▼</span>
         </div>
       </div>
+      <!-- Splash hint pill -->
+      <div class="splash-hint" id="splashHint">Click to begin</div>
+      <!-- Pause hint pill -->
+      <div class="pause-hint hidden" id="pauseHint">Click to resume</div>
     </div>
 
     <!-- Large value display -->
