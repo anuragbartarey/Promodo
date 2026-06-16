@@ -474,6 +474,11 @@ body::after {
     width: 30px;
   }
 
+  .branding {
+    bottom: 80px;
+    left: 10px;
+  }
+
   .branding-title {
     font-size: 28px;
   }
@@ -481,6 +486,11 @@ body::after {
   .branding-author {
     font-size: 8px;
     margin-top: 6px;
+  }
+
+  .controls {
+    bottom: 80px;
+    right: 10px;
   }
 
   .splash-hint,
