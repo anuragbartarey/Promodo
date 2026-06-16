@@ -11,6 +11,16 @@ const CONFIG = {
   majorTickInterval: 10, // Major ticks every 5 units
 };
 
+// Get responsive offsets based on screen width
+function getResponsiveOffsets() {
+  const isMobile = window.innerWidth <= 768;
+  return {
+    buttonOffset: isMobile ? 30 : 40, // Half of button wrapper size (60px or 80px)
+    valueLeftOffset: isMobile ? 35 : 50,
+    valueTopOffset: isMobile ? 40 : 60,
+  };
+}
+
 // State
 let currentValue = CONFIG.initialValue;
 let previousValue = CONFIG.initialValue;
@@ -513,7 +523,8 @@ function updateLabels(buttonY) {
   const x = CONFIG.lineX;
   const tickLength = 12;
   const gap = 8;
-  const baseFontSize = 24;
+  const isMobile = window.innerWidth <= 768;
+  const baseFontSize = isMobile ? 16 : 24;
   const maxFontIncrease = 0.2; // 20% increase
 
   for (const { element, value } of labelElements) {
@@ -565,10 +576,13 @@ function updateSlider() {
   updateTickMarks(buttonY);
   updateLabels(buttonY);
 
+  // Get responsive offsets
+  const offsets = getResponsiveOffsets();
+
   // Position the button wrapper on the RIGHT side (fixed X, the line bends away from it)
   const buttonX = CONFIG.lineX + 10;
-  sliderButtonWrapper.style.left = `${buttonX - 40}px`;
-  sliderButtonWrapper.style.top = `${buttonY - 40}px`;
+  sliderButtonWrapper.style.left = `${buttonX - offsets.buttonOffset}px`;
+  sliderButtonWrapper.style.top = `${buttonY - offsets.buttonOffset}px`;
 
   // Position the glow circle at the curve peak
   const glowX = CONFIG.lineX - CONFIG.bulgeAmount;
@@ -580,8 +594,8 @@ function updateSlider() {
   glowMaskCircle.setAttribute("cy", buttonY);
 
   // Position and update value display (right of button)
-  valueContainer.style.left = `${buttonX + 50}px`;
-  valueContainer.style.top = `${buttonY - 60}px`;
+  valueContainer.style.left = `${buttonX + offsets.valueLeftOffset}px`;
+  valueContainer.style.top = `${buttonY - offsets.valueTopOffset}px`;
   valueDisplay.textContent = currentValue;
 }
 
@@ -749,10 +763,13 @@ function updateSliderWithY(buttonY) {
   updateTickMarks(buttonY);
   updateLabels(buttonY);
 
+  // Get responsive offsets
+  const offsets = getResponsiveOffsets();
+
   // Position the button wrapper
   const buttonX = CONFIG.lineX + 10;
-  sliderButtonWrapper.style.left = `${buttonX - 40}px`;
-  sliderButtonWrapper.style.top = `${buttonY - 40}px`;
+  sliderButtonWrapper.style.left = `${buttonX - offsets.buttonOffset}px`;
+  sliderButtonWrapper.style.top = `${buttonY - offsets.buttonOffset}px`;
 
   // Position the glow circle at the curve peak
   const glowX = CONFIG.lineX - CONFIG.bulgeAmount;
@@ -764,8 +781,8 @@ function updateSliderWithY(buttonY) {
   glowMaskCircle.setAttribute("cy", buttonY);
 
   // Position and update value display
-  valueContainer.style.left = `${buttonX + 50}px`;
-  valueContainer.style.top = `${buttonY - 60}px`;
+  valueContainer.style.left = `${buttonX + offsets.valueLeftOffset}px`;
+  valueContainer.style.top = `${buttonY - offsets.valueTopOffset}px`;
   valueDisplay.textContent = currentValue;
 }
 
