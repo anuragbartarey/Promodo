@@ -55,17 +55,14 @@ function playTick() {
   oscillator.connect(gainNode);
   gainNode.connect(audioCtx.destination);
 
-  oscillator.frequency.value = 1800;
+  oscillator.frequency.value = 552;
   oscillator.type = "sine";
 
-  gainNode.gain.setValueAtTime(0.08, audioCtx.currentTime);
-  gainNode.gain.exponentialRampToValueAtTime(
-    0.001,
-    audioCtx.currentTime + 0.04,
-  );
+  gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+  gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.14);
 
   oscillator.start(audioCtx.currentTime);
-  oscillator.stop(audioCtx.currentTime + 0.04);
+  oscillator.stop(audioCtx.currentTime + 0.08);
 }
 
 // Soft heartbeat/clock tick for seconds
@@ -84,16 +81,16 @@ function playHeartbeat() {
   gainNode.connect(audioCtx.destination);
 
   // Low frequency for a soft thump
-  oscillator.frequency.value = 120;
+  oscillator.frequency.value = 100;
   oscillator.type = "sine";
 
   // Soft but audible
   const now = audioCtx.currentTime;
-  gainNode.gain.setValueAtTime(0.1, now);
-  gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+  gainNode.gain.setValueAtTime(0.04, now);
+  gainNode.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
 
   oscillator.start(now);
-  oscillator.stop(now + 0.08);
+  oscillator.stop(now + 0.38);
 }
 
 // Timer functions
