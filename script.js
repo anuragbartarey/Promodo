@@ -182,6 +182,10 @@ const tickMarksGroup = document.getElementById("tickMarks");
 const labelsContainer = document.getElementById("labels");
 const pauseBtn = document.getElementById("pauseBtn");
 const muteBtn = document.getElementById("muteBtn");
+const splashOverlay = document.getElementById("splashOverlay");
+const splashHint = document.getElementById("splashHint");
+const pauseOverlay = document.getElementById("pauseOverlay");
+const pauseHint = document.getElementById("pauseHint");
 
 // Cached elements for smooth transitions
 let tickElements = [];
@@ -206,9 +210,38 @@ const HIGHLIGHT_COLOR_PAUSED = "#888";
 // Update SVG gradient colors
 function updateGlowColor(color) {
   const glowStops = document.querySelectorAll(".glow-stop");
-  glowStops.forEach(stop => {
+  glowStops.forEach((stop) => {
     stop.setAttribute("stop-color", color);
   });
+}
+
+// Get button center position for overlay animations
+function getButtonCenterPosition() {
+  const buttonRect = sliderButtonWrapper.getBoundingClientRect();
+  const xPercent =
+    ((buttonRect.left + buttonRect.width / 2) / window.innerWidth) * 100;
+  const yPercent =
+    ((buttonRect.top + buttonRect.height / 2) / window.innerHeight) * 100;
+  return { xPercent, yPercent };
+}
+
+// Show pause overlay with expanding animation
+function showPauseOverlay() {
+  const { xPercent, yPercent } = getButtonCenterPosition();
+  pauseOverlay.style.setProperty("--button-x", `${xPercent}%`);
+  pauseOverlay.style.setProperty("--button-y", `${yPercent}%`);
+  pauseOverlay.classList.remove("hidden");
+  pauseOverlay.classList.add("visible");
+  pauseHint.classList.remove("hidden");
+  pauseHint.classList.add("visible");
+}
+
+// Hide pause overlay with shrinking animation
+function hidePauseOverlay() {
+  pauseOverlay.classList.remove("visible");
+  pauseOverlay.classList.add("hidden");
+  pauseHint.classList.remove("visible");
+  pauseHint.classList.add("hidden");
 }
 
 // Toggle pause/resume
@@ -219,12 +252,16 @@ function togglePause() {
     updateGlowColor(HIGHLIGHT_COLOR_PAUSED);
     pauseBtn.querySelector(".icon-pause").style.display = "none";
     pauseBtn.querySelector(".icon-play").style.display = "inline";
+    showPauseOverlay();
   } else {
-    startTimer();
-    document.body.classList.remove("paused");
-    updateGlowColor(HIGHLIGHT_COLOR_ACTIVE);
-    pauseBtn.querySelector(".icon-pause").style.display = "inline";
-    pauseBtn.querySelector(".icon-play").style.display = "none";
+    hidePauseOverlay();
+    setTimeout(() => {
+      startTimer();
+      document.body.classList.remove("paused");
+      updateGlowColor(HIGHLIGHT_COLOR_ACTIVE);
+      pauseBtn.querySelector(".icon-pause").style.display = "inline";
+      pauseBtn.querySelector(".icon-play").style.display = "none";
+    }, 500);
   }
 }
 
@@ -264,8 +301,75 @@ function init() {
   pauseBtn.addEventListener("click", togglePause);
   muteBtn.addEventListener("click", toggleMute);
 
-  // Start the timer automatically
-  startTimer();
+  // Set up pause overlay click to resume
+  pauseOverlay.addEventListener("click", handleResumeClick);
+  pauseOverlay.addEventListener("touchstart", handleResumeClick);
+
+  // Also allow clicking button or hint to resume when paused
+  pauseHint.addEventListener("click", handleResumeClick);
+  pauseHint.addEventListener("touchstart", handleResumeClick);
+
+  // Allow clicking the draggable button to resume when paused
+  sliderButton.addEventListener("click", handleResumeClick);
+  sliderButton.addEventListener("touchend", handleResumeClick);
+
+  // Set up splash overlay click handler
+  setupSplashOverlay();
+}
+
+// Handle resume click (only when paused)
+function handleResumeClick(e) {
+  // Only resume if the pause overlay is visible
+  if (pauseOverlay.classList.contains("visible")) {
+    e.preventDefault();
+    e.stopPropagation();
+    togglePause();
+  }
+}
+
+// Handle splash overlay and start experience
+function setupSplashOverlay() {
+  const handleSplashClick = (e) => {
+    // Get button center position for the animation target
+    const buttonRect = sliderButtonWrapper.getBoundingClientRect();
+    const buttonCenterX = buttonRect.left + buttonRect.width / 2;
+    const buttonCenterY = buttonRect.top + buttonRect.height / 2;
+
+    // Convert to percentage for clip-path
+    const xPercent = (buttonCenterX / window.innerWidth) * 100;
+    const yPercent = (buttonCenterY / window.innerHeight) * 100;
+
+    // Set CSS variables for animation target
+    splashOverlay.style.setProperty("--button-x", `${xPercent}%`);
+    splashOverlay.style.setProperty("--button-y", `${yPercent}%`);
+
+    // Hide the hint pill
+    splashHint.classList.add("hidden");
+
+    // Trigger the hide animation
+    splashOverlay.classList.add("hidden");
+
+    // Start timer after animation completes
+    setTimeout(() => {
+      splashOverlay.classList.add("removed");
+      startTimer();
+    }, 600);
+
+    // Remove the click listeners
+    splashOverlay.removeEventListener("click", handleSplashClick);
+    splashOverlay.removeEventListener("touchstart", handleSplashClick);
+  };
+
+  splashOverlay.addEventListener("click", handleSplashClick);
+  splashOverlay.addEventListener("touchstart", handleSplashClick);
+
+  // Also allow clicking the button to dismiss splash
+  sliderButtonWrapper.addEventListener("click", handleSplashClick, {
+    once: true,
+  });
+  sliderButtonWrapper.addEventListener("touchstart", handleSplashClick, {
+    once: true,
+  });
 }
 
 // Create tick mark elements once
