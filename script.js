@@ -193,6 +193,13 @@ const splashOverlay = document.getElementById("splashOverlay");
 const splashHint = document.getElementById("splashHint");
 const pauseOverlay = document.getElementById("pauseOverlay");
 const pauseHint = document.getElementById("pauseHint");
+const startPointDot = document.getElementById("startPointDot");
+const startPointText = document.getElementById("startPointText");
+
+// Start point indicator state
+let startPointTimeout = null;
+let startPointTextTimeout = null;
+let startPointValue = null;
 
 // Cached elements for smooth transitions
 let tickElements = [];
@@ -249,6 +256,62 @@ function hidePauseOverlay() {
   pauseOverlay.classList.add("hidden");
   pauseHint.classList.remove("visible");
   pauseHint.classList.add("hidden");
+}
+
+// Start point indicator functions
+function showStartPointDot(value) {
+  const y = valueToY(value);
+  const x = CONFIG.lineX;
+  const tickLength = 12;
+  const gap = 8;
+  // Position to the left of the timeline labels (at rest position, no displacement)
+  const labelX = x - gap - tickLength - 15 - 40;
+  startPointDot.style.left = `${labelX - 68}px`; // 61px left of the label (dot + line + spacing)
+  startPointDot.style.top = `${y - 4}px`; // Center vertically (8px dot / 2)
+  startPointDot.classList.add("visible");
+  startPointValue = value;
+
+  // Show the text label
+  startPointText.textContent = `Timer set for ${value} minutes`;
+  startPointText.classList.remove("fading");
+  startPointText.classList.add("visible");
+
+  // Clear any existing text timeout
+  if (startPointTextTimeout) {
+    clearTimeout(startPointTextTimeout);
+  }
+
+  // Fade out text after 5 seconds
+  startPointTextTimeout = setTimeout(() => {
+    startPointText.classList.remove("visible");
+    startPointText.classList.add("fading");
+  }, 5000);
+}
+
+function hideStartPointDot() {
+  startPointDot.classList.remove("visible");
+  startPointValue = null;
+
+  // Hide the text label
+  startPointText.classList.remove("visible", "fading");
+  if (startPointTextTimeout) {
+    clearTimeout(startPointTextTimeout);
+    startPointTextTimeout = null;
+  }
+}
+
+function scheduleStartPointDot() {
+  clearStartPointTimeout();
+  startPointTimeout = setTimeout(() => {
+    showStartPointDot(currentValue);
+  }, 2000);
+}
+
+function clearStartPointTimeout() {
+  if (startPointTimeout) {
+    clearTimeout(startPointTimeout);
+    startPointTimeout = null;
+  }
 }
 
 // Toggle pause/resume
@@ -360,6 +423,8 @@ function setupSplashOverlay() {
     setTimeout(() => {
       splashOverlay.classList.add("removed");
       startTimer();
+      // Schedule start point dot to appear after 2 seconds
+      scheduleStartPointDot();
     }, 600);
 
     // Remove the click listeners
@@ -625,6 +690,10 @@ function startDrag(e) {
   glowMaskCircle.classList.add("dragging");
   initAudio();
 
+  // Hide start point dot and clear timeout when dragging starts
+  hideStartPointDot();
+  clearStartPointTimeout();
+
   // Pause timer while dragging
   stopTimer();
 
@@ -697,6 +766,9 @@ function endDrag() {
   } else {
     stopTimer();
   }
+
+  // Schedule start point dot to appear after 2 seconds
+  scheduleStartPointDot();
 }
 
 function animateMomentum() {
