@@ -430,6 +430,58 @@ body::after {
 }
 
 /* Mobile Responsive */
+/* Start point indicator dot */
+.start-point-dot {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: var(--highlight-color);
+  border-radius: 50%;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.start-point-dot::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 2px;
+  background: var(--highlight-color);
+}
+
+.start-point-dot.visible {
+  opacity: 1;
+}
+
+.start-point-text {
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 12px;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 300;
+  color: #888;
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+.start-point-text.visible {
+  opacity: 1;
+  transition: opacity 0.3s ease;
+}
+
+.start-point-text.fading {
+  opacity: 0;
+  transition: opacity 1.5s ease;
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
   body {
     padding-right: 10px;
