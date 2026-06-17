@@ -181,12 +181,21 @@ body::after {
 .tick-mark {
   stroke: #666;
   stroke-width: 1;
-  transition: x1 0.15s ease-out, x2 0.15s ease-out;
+  transition: x1 0.15s ease-out, x2 0.15s ease-out, opacity 7s ease;
 }
 
 .tick-mark.major {
   stroke: #888;
   stroke-width: 2.5;
+}
+
+.tick-mark.focus-mode {
+  opacity: 0.1;
+}
+
+.tick-mark.focus-reset {
+  opacity: 1;
+  transition: x1 0.15s ease-out, x2 0.15s ease-out, opacity 0.3s ease;
 }
 
 .labels {
@@ -206,7 +215,16 @@ body::after {
   transform: translateY(-50%);
   text-align: right;
   width: 40px;
-  transition: left 0.15s ease-out, font-size 0.15s ease-out, color 0.15s ease-out, text-shadow 0.15s ease-out;
+  transition: left 0.15s ease-out, font-size 0.15s ease-out, color 0.15s ease-out, text-shadow 0.15s ease-out, opacity 7s ease;
+}
+
+.label.focus-mode {
+  opacity: 0.1;
+}
+
+.label.focus-reset {
+  opacity: 1;
+  transition: left 0.15s ease-out, font-size 0.15s ease-out, color 0.15s ease-out, text-shadow 0.15s ease-out, opacity 0.3s ease;
 }
 
 /* Button wrapper for positioning both button and progress ring */
@@ -343,11 +361,20 @@ body::after {
 #glowCircle {
   opacity: 0.6;
   mix-blend-mode: screen;
-  transition: cx 0.08s ease-out, cy 0.08s ease-out;
+  transition: cx 0.08s ease-out, cy 0.08s ease-out, opacity 7s ease;
 }
 
 #glowCircle.dragging {
   transition: none;
+}
+
+#glowCircle.focus-mode {
+  opacity: 0.1;
+}
+
+#glowCircle.focus-reset {
+  opacity: 0.6;
+  transition: cx 0.08s ease-out, cy 0.08s ease-out, opacity 0.3s ease;
 }
 
 #glowMaskCircle {
@@ -542,7 +569,7 @@ body::after {
 
   .controls {
     bottom: 80px;
-    right: 10px;
+    right: 20px;
   }
 
   .splash-hint,

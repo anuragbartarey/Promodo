@@ -201,6 +201,9 @@ let startPointTimeout = null;
 let startPointTextTimeout = null;
 let startPointValue = null;
 
+// Focus mode state
+let focusModeTimeout = null;
+
 // Cached elements for smooth transitions
 let tickElements = [];
 let labelElements = [];
@@ -311,6 +314,49 @@ function clearStartPointTimeout() {
   if (startPointTimeout) {
     clearTimeout(startPointTimeout);
     startPointTimeout = null;
+  }
+}
+
+// Focus mode functions
+function enableFocusMode() {
+  // Add focus-mode class to all tick marks, labels, and glow
+  tickElements.forEach(({ element }) => {
+    element.classList.remove("focus-reset");
+    element.classList.add("focus-mode");
+  });
+  labelElements.forEach(({ element }) => {
+    element.classList.remove("focus-reset");
+    element.classList.add("focus-mode");
+  });
+  glowCircle.classList.remove("focus-reset");
+  glowCircle.classList.add("focus-mode");
+}
+
+function disableFocusMode() {
+  // Remove focus-mode and add focus-reset for quick fade back
+  tickElements.forEach(({ element }) => {
+    element.classList.remove("focus-mode");
+    element.classList.add("focus-reset");
+  });
+  labelElements.forEach(({ element }) => {
+    element.classList.remove("focus-mode");
+    element.classList.add("focus-reset");
+  });
+  glowCircle.classList.remove("focus-mode");
+  glowCircle.classList.add("focus-reset");
+}
+
+function scheduleFocusMode() {
+  clearFocusModeTimeout();
+  focusModeTimeout = setTimeout(() => {
+    enableFocusMode();
+  }, 5000); // Start fading after 5 seconds (when "Timer set" text begins fading)
+}
+
+function clearFocusModeTimeout() {
+  if (focusModeTimeout) {
+    clearTimeout(focusModeTimeout);
+    focusModeTimeout = null;
   }
 }
 
@@ -425,6 +471,8 @@ function setupSplashOverlay() {
       startTimer();
       // Schedule start point dot to appear after 2 seconds
       scheduleStartPointDot();
+      // Schedule focus mode to start fading timeline
+      scheduleFocusMode();
     }, 600);
 
     // Remove the click listeners
@@ -694,6 +742,10 @@ function startDrag(e) {
   hideStartPointDot();
   clearStartPointTimeout();
 
+  // Reset focus mode when dragging starts
+  disableFocusMode();
+  clearFocusModeTimeout();
+
   // Pause timer while dragging
   stopTimer();
 
@@ -769,6 +821,9 @@ function endDrag() {
 
   // Schedule start point dot to appear after 2 seconds
   scheduleStartPointDot();
+
+  // Schedule focus mode to start fading timeline
+  scheduleFocusMode();
 }
 
 function animateMomentum() {
