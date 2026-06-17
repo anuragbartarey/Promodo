@@ -551,5 +551,13 @@ body::after {
     padding: 8px 16px;
     margin-right: 10px;
   }
+
+  .start-point-text {
+    white-space: normal;
+    max-width: 120px;
+    text-align: right;
+    font-size: 10px;
+    line-height: 1.3;
+  }
 }
 

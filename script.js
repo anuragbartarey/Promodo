@@ -266,7 +266,7 @@ function showStartPointDot(value) {
   const gap = 8;
   // Position to the left of the timeline labels (at rest position, no displacement)
   const labelX = x - gap - tickLength - 15 - 40;
-  startPointDot.style.left = `${labelX - 36}px`; // 36px left of the label (dot + line length)
+  startPointDot.style.left = `${labelX - 68}px`; // 61px left of the label (dot + line + spacing)
   startPointDot.style.top = `${y - 4}px`; // Center vertically (8px dot / 2)
   startPointDot.classList.add("visible");
   startPointValue = value;
