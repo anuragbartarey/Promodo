@@ -21,6 +21,7 @@
   height: 100vh;
   overflow: hidden;
   background: var(--highlight-color);
+  opacity: 0.95;
   z-index: 1000;
   pointer-events: auto;
   clip-path: circle(150% at 50% 50%);
@@ -44,7 +45,7 @@
   transform: translateY(-50%);
   margin-right: 15px;
   padding: 12px 24px;
-  border: 1px solid #151616;
+  border: 1.5px solid #151616;
   border-radius: 50px;
   color: #151616;
   font-size: 24px;
@@ -93,9 +94,9 @@
   transform: translateY(-50%);
   margin-right: 15px;
   padding: 12px 24px;
-  border: 1px solid #151616;
+  border: 1px solid #fcfcfc;
   border-radius: 50px;
-  color: #151616;
+  color: #fcfcfc;
   font-size: 24px;
   font-weight: 300;
   white-space: nowrap;
